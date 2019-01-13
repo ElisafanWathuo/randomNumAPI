@@ -1,0 +1,53 @@
+<html>
+
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body id="graph">
+    <script>
+        function rand() {
+            return Math.random();
+
+        }
+
+        Plotly.plot('graph', [{
+            y: [1, 2, 3].map(rand)
+        }, {
+            y: [1, 2, 3].map(rand)
+        }]);
+
+        var cnt = 0;
+
+        var interval = setInterval(function () {
+            var ws = new WebSocket("ws://" + window.location.host + "/")
+            var res;
+            var msg = {
+                stream: "random",
+                payload: {
+                    'action': 'list',
+                    'request_id': 'client-request-id',
+                    'data': {},
+                }
+            }
+
+            ws.onopen = () => ws.send(JSON.stringify(msg))
+
+            ws.onmessage = function (e) {
+                res = JSON.parse(e.data);
+                res.payload.data.map(
+                    dt => {
+                        Plotly.extendTraces('graph', {
+                            y: [[dt.random_number], [dt.random_number]]
+                        }, [0, 1])
+                    }
+                );
+            }
+
+            if (cnt === 100) clearInterval(interval);
+        }, 300);
+
+    </script>
+</body>
+
+</html>
